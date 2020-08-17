@@ -1,0 +1,1 @@
+{"browsertime":{"browser":"chrome","iterations":1,"spa":false,"summary":true,"chrome:":{"ignoreCertificateErrors":true}},"html":{"showAllWaterfallSummary":true,"compareUrl":true},"Text":{"summary":false},"Sustainable":{"enable":true,"pageViews":7},"axe":{"enable":true},"metrics":{"list":true,"filterList":true},"gzipHAR":false,"video":true}

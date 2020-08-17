@@ -30,15 +30,6 @@ export class AppService {
        default: null;
          break;
      }
-
-  
-  //  await  createConfigFile(data);
-
-    
-  //   let outPut = new Object();
-  //   outPut['agent'] = await getPageXray('./speedtest.sh local config/temp.json', data);
-  //   outPut['noAgent'] = await getPageXray('./speedtest.sh local config/config.json', data)
-  //   return outPut;
   }
 }
 
@@ -49,7 +40,7 @@ async function  testQA(data: { webpageWithoutPIM: string, webpageWithPIM: string
    await createConfigFile(data)
  
     outPut['agent'] = await getPageXrayWithoutPIM('./speedtest.sh local config/temp-proxy.json', data);
-    outPut['noAgent'] = await getPageXrayWithoutPIM('./speedtest.sh local config/temp.json', data)
+    outPut['noAgent'] = await getPageXrayWithoutPIM('./speedtest.sh local config/temp-config.json', data)
     return outPut;
 
 }
@@ -62,16 +53,14 @@ async function testProduction(data: { webpageWithoutPIM: string, webpageWithPIM:
   let outPut = new Object();
 
 
-  console.log("9999999")
+console.log("9999999")
+await createConfigFile(data) 
+ 
 
-  await createConfigFile(data) 
- outPut['agent'] = await getPageXrayWithPIMAgent('./speedtest.sh local config/temp-config.json', data);
+outPut['agent'] = await getPageXrayWithPIMAgent('./speedtest.sh local config/temp-config.json', data);
  outPut['noAgent'] = await getPageXrayWithoutPIM('./speedtest.sh local config/temp-config.json', data)
   return outPut;
 }
-
-
-
 
 
 
@@ -80,15 +69,20 @@ async function getPageXrayWithPIMAgent(execute: string, data: { webpageWithoutPI
   let lastword: string;
   let parse: any;
   let agentLog = shell.exec(`${execute} ${data.webpageWithPIM}`, { silent: true }).stdout;
-  let har = getHARFile(agentLog, data);
+
 
   new Promise(() => {
     lastword = getLastword(agentLog);
   });
 
+  // let har = getHARFile(agentLog, data);
+
+  let  folderWPathWebsite = getfolderWPathWebsite(agentLog, data)
+  let har = getHARFile(agentLog, data, lastword, folderWPathWebsite);
+
+
   let link = `${lastword}/index.html`;
   let harPath = `${lastword}${har}`
-
   let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${lastword}${har}`, { silent: true }).stdout;
 
   new Promise(() => {
@@ -112,16 +106,19 @@ async function getPageXrayWithoutPIM(execute: string, data: { webpageWithoutPIM:
   let lastword: string;
   let parse: any;
   let agentLog = shell.exec(`${execute} ${data.webpageWithoutPIM}`, { silent: true }).stdout;
-  let har = getHARFile(agentLog, data);
 
   new Promise(() => {
     lastword = getLastword(agentLog);
   });
 
+    
+  let folderWPathWebsite = getfolderWPathWebsite(agentLog, data)
+  let har = getHARFile(agentLog, data, lastword, folderWPathWebsite);
+
   let link = `${lastword}/index.html`;
   let harPath = `${lastword}${har}`
-
   let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${lastword}${har}`, { silent: true }).stdout;
+
 
   new Promise(() => {
     parse = JSON.parse(pageXray)
@@ -138,11 +135,27 @@ async function getPageXrayWithoutPIM(execute: string, data: { webpageWithoutPIM:
 
 }
 
-function getHARFile(outPut: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }): string {
+
+function getfolderWPathWebsite(outPut: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }): string {
   let lastword = getLastword(outPut);
   let folder = getFolder(lastword);
   let website = getWithoutHttp(data.webpageWithoutPIM);
-  return `${folder}/pages/${website}/data/browsertime.har`;
+  return `${folder}/pages/${website}/`;
+}
+
+
+function getHARFile(outPut: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }, lastWord: string, folderWPathWebsite: string): string {
+  let lastword = getLastword(outPut);
+  let folder = getFolder(lastword);
+  let website = getWithoutHttp(data.webpageWithoutPIM);
+
+  let childDirectory =  shell.exec(`cd ${__dirname}/../data/piqaautomationstorage/${lastword}${folderWPathWebsite} && ls -1d */`, { silent: true }).stdout;
+
+   if(childDirectory.trim() === 'data/'){ 
+     return `${folder}/pages/${website}/data/browsertime.har`;
+   }else{
+    return `${folder}/pages/${website}/${childDirectory}data/browsertime.har`;
+   }
 }
 
 function getLastword(outPut: string): string {
@@ -254,7 +267,7 @@ let config =  {
     "video": true
   } 
 
-fs.writeFileSync('./config/temp.json', JSON.stringify(config));
+fs.writeFileSync('./config/temp-config.json', JSON.stringify(config));
 console.log("File created!");  
 }
 
