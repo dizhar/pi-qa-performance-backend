@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, Header, Param, Req, Request, Query, Res, HttpStatus, Post, Body } from '@nestjs/common';
+import { Controller, Get, HttpCode, Header, Param, Req, Request, Query, Res, HttpStatus, Post, Body, Delete } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Response } from 'express';
 import { Observable } from 'rxjs';
@@ -13,9 +13,6 @@ export class AppController {
 
   @Post()
   async post(@Body() body,  @Res() res: Response){
-console.log("body:", body);
-
-
     await this.appService.start(body).then((data)=>{
    return res.status(HttpStatus.OK).send({data});
   }) 
@@ -24,7 +21,30 @@ console.log("body:", body);
 
 
 
-  }
+//  @Get(':name')
+//  async remove(@Param('name') res: Response) {
+//    console.log(`${name}`);
+//    return res.status(HttpStatus.OK).send({name});
+//  }
+
+// @Get(':configFile')
+// remove(@Param('configFile') configFile: string,  @Res() res: Response) {
+//   return `This action returns a ${configFile} cat`;
+// }
+
+
+@Post("/remove")
+async remove(@Body() body, @Res() res: Response): Promise<void> {
+  return this.appService.removeConfigFile(body)
+}
+
+
+}
+
+
+
+
+
 
 
   

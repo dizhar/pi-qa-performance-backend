@@ -1,89 +1,134 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Session } from '@nestjs/common';
 import * as shell from "shelljs";
 import { request } from 'express';
 
 import * as pagexray from 'pagexray';
 import { stringify } from 'querystring';
-import { timeStamp } from 'console';
+import { timeStamp, count } from 'console';
 import { async } from 'rxjs';
 
 import * as fs from 'fs';
+import { AbstractHttpAdapter } from '@nestjs/core';
+import { RegExr } from "./support/RegExr";
+import {Create  } from './support/create';
 
+var tcpPortUsed = require('tcp-port-used');
+
+
+
+const _RegExr = new RegExr();
+const _create = new Create();
 
 
 @Injectable()
 export class AppService {
-   
-  constructor(){}
 
 
-  async start(data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }): Promise<object> {
+  constructor() { }
 
-    console.log("data.goal:", data.goal) 
+  async removeConfigFile(list: {}[]): Promise<void>{
+      list.forEach((item)=>{
+       fs.unlinkSync(`./config/${item}`)
+      })
+  }
 
-     switch (data.goal) {
-       case "test production": return testProduction(data)
-         break;
-         case "test qa": return testQA(data);
-         break; 
-     
-       default: null;
-         break;
-     }
+  async start(list: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }[]): Promise<Object[]> {
+    let results = new Array();
+    let uniqid: string = _RegExr.getUniquId();
+     _create.setSessionConfigFile(uniqid);
+
+
+    list.forEach(data => {
+      // let uniqid: string = _RegExr.getUniquId();
+      // new Promise(() => {
+      //   _create.setSessionConfigFile(uniqid);
+      // });
+
+      let obj = Object.assign(data, { session: uniqid });   
+      switch (data.goal) {
+        case "test production": results.push(testProduction(obj))
+          break;
+        case "test qa": results.push(testQA(obj));
+          break;
+        default: null;
+          break;
+      }
+    });
+
+    return  await Promise.all(results);
   }
 }
 
-async function  testQA(data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }) {
+async function testQA(data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean, session: string }) {
   let outPut = new Object();
   
-   await createAProxyConfigFile(data);
-   await createConfigFile(data)
- 
-    outPut['agent'] = await getPageXrayWithoutPIM('./speedtest.sh local config/temp-proxy.json', data);
-    outPut['noAgent'] = await getPageXrayWithoutPIM('./speedtest.sh local config/temp-config.json', data)
-    return outPut;
+  Object.assign(data, {configFile: `temp-proxy_${data.session}.json`});
+  let obj = Object.assign(data, { port: await getAvilablePort() });
 
+
+  await createAProxyConfigFileWithPIM(obj);
+  outPut['agent'] = await  getPageXrayWithoutPIM(`./speedtest.sh local config/temp-proxy_${data.session}.json`, data);
+  outPut['agent'].session = data;
+
+
+  await createAProxyConfigFileWithoutPIM(obj)
+  outPut['noAgent'] =  await getPageXrayWithoutPIM(`./speedtest.sh local config/temp-proxy_${data.session}.json`, data);
+  outPut['noAgent'].session = data;
+
+  return Promise.resolve(outPut);
 }
 
 
-
-
-
-async function testProduction(data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }): Promise<object> {
+async function testProduction(data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean, session: string}): Promise<object> {
   let outPut = new Object();
 
+  Object.assign(data, {configFile: `temp-config_${data.session}.json`});
 
-console.log("9999999")
-await createConfigFile(data) 
- 
+  await createConfigFile(data)
 
-outPut['agent'] = await getPageXrayWithPIMAgent('./speedtest.sh local config/temp-config.json', data);
- outPut['noAgent'] = await getPageXrayWithoutPIM('./speedtest.sh local config/temp-config.json', data)
-  return outPut;
+  outPut['agent'] = await getPageXrayWithPIMAgent(`./speedtest.sh local config/temp-config_${data.session}.json`, data);
+  outPut['agent'].session = data;
+
+  outPut['noAgent'] = await getPageXrayWithoutPIM(`./speedtest.sh local config/temp-config_${data.session}.json`, data);
+  outPut['noAgent'].sesssion = data;
+
+  return Promise.resolve(outPut);
 }
 
 
 
-async function getPageXrayWithPIMAgent(execute: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }): Promise<object>{
+async function getAvilablePort(): Promise<number> {
+  let port: number = 4200;
+  let inUse: boolean = await tcpPortUsed.check(port, '127.0.0.1');
+
+  while (inUse === true) {
+    port++;
+    inUse = await tcpPortUsed.check(port, '127.0.0.1');
+  }
+  return port;
+}
+
+
+
+async function getPageXrayWithPIMAgent(execute: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }): Promise<object> {
 
   let lastword: string;
-  let parse: any;
-  let agentLog = shell.exec(`${execute} ${data.webpageWithPIM}`, { silent: true }).stdout;
+  let parse: any;  
+  let agentLog: string = shell.exec(`${execute} ${data.webpageWithPIM}`, { silent: true }).stdout;
 
 
   new Promise(() => {
     lastword = getLastword(agentLog);
   });
 
-  // let har = getHARFile(agentLog, data);
 
-  let  folderWPathWebsite = getfolderWPathWebsite(agentLog, data)
-  let har = getHARFile(agentLog, data, lastword, folderWPathWebsite);
+  let folderWPathWebsite: string = getfolderWPathWebsite(agentLog, data)
+  let har: string = getHARFile(agentLog, data, lastword, folderWPathWebsite);
 
 
-  let link = `${lastword}/index.html`;
-  let harPath = `${lastword}${har}`
-  let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${lastword}${har}`, { silent: true }).stdout;
+  let link: string = `${lastword}/index.html`.trim();
+  let harPath: string = `${lastword}${har}`.trim();
+  let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
 
   new Promise(() => {
     parse = JSON.parse(pageXray)
@@ -96,12 +141,14 @@ async function getPageXrayWithPIMAgent(execute: string, data: { webpageWithoutPI
     pageXray: parse
   };
 
-  return  Promise.resolve(obj);
+  return Promise.resolve(obj);
 }
 
 
 
-async function getPageXrayWithoutPIM(execute: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }): Promise<object>{
+async function getPageXrayWithoutPIM(execute: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }): Promise<object> {
+try {
+  
 
   let lastword: string;
   let parse: any;
@@ -111,13 +158,13 @@ async function getPageXrayWithoutPIM(execute: string, data: { webpageWithoutPIM:
     lastword = getLastword(agentLog);
   });
 
-    
-  let folderWPathWebsite = getfolderWPathWebsite(agentLog, data)
-  let har = getHARFile(agentLog, data, lastword, folderWPathWebsite);
 
-  let link = `${lastword}/index.html`;
-  let harPath = `${lastword}${har}`
-  let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${lastword}${har}`, { silent: true }).stdout;
+  let folderWPathWebsite = getfolderWPathWebsite(agentLog, data)
+  let har: string  = getHARFile(agentLog, data, lastword, folderWPathWebsite);
+
+  let link: string = `${lastword}/index.html`.trim();
+  let harPath: string = `${lastword}${har}`.trim();
+  let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
 
 
   new Promise(() => {
@@ -125,37 +172,39 @@ async function getPageXrayWithoutPIM(execute: string, data: { webpageWithoutPIM:
   })
 
 
-  let obj = {
+  let obj: Object = {
     link: link,
     harPath: harPath,
     pageXray: parse
   };
 
-  return  Promise.resolve(obj);
+  return Promise.resolve(obj);
+} catch (error) {
+     throw error;
+}
 
 }
 
 
 function getfolderWPathWebsite(outPut: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }): string {
-  let lastword = getLastword(outPut);
-  let folder = getFolder(lastword);
-  let website = getWithoutHttp(data.webpageWithoutPIM);
+  let lastword: string = getLastword(outPut);
+  let folder: string = getFolder(lastword);
+  let website: string = getWithoutHttp(data.webpageWithoutPIM);
   return `${folder}/pages/${website}/`;
 }
 
 
 function getHARFile(outPut: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }, lastWord: string, folderWPathWebsite: string): string {
-  let lastword = getLastword(outPut);
-  let folder = getFolder(lastword);
-  let website = getWithoutHttp(data.webpageWithoutPIM);
+  let lastword: string = getLastword(outPut);
+  let folder: string = getFolder(lastword);
+  let website: string = getWithoutHttp(data.webpageWithoutPIM);
+  let childDirectory: string = shell.exec(`cd ${__dirname}/../data/piqaautomationstorage/${lastword}${folderWPathWebsite} && ls -1d */`, { silent: true }).stdout;
 
-  let childDirectory =  shell.exec(`cd ${__dirname}/../data/piqaautomationstorage/${lastword}${folderWPathWebsite} && ls -1d */`, { silent: true }).stdout;
-
-   if(childDirectory.trim() === 'data/'){ 
-     return `${folder}/pages/${website}/data/browsertime.har`;
-   }else{
-    return `${folder}/pages/${website}/${childDirectory}data/browsertime.har`;
-   }
+  if (childDirectory.trim() === 'data/') {
+    return `${folder}/pages/${website}/data/browsertime.har`;
+  } else {
+    return `${folder}/pages/${website}/${childDirectory.replace(/(\r\n|\n|\r)/gm, "")}/data/browsertime.har`;
+  }
 }
 
 function getLastword(outPut: string): string {
@@ -186,13 +235,13 @@ async function getLink(log: string, data: object): Promise<string> {
   return `.${lastword}/index.html`;
 }
 
-async function createAProxyConfigFile(data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }) {
+async function createAProxyConfigFileWithPIM(data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean, port: number, session: string}) {
 
- let config = {
+  let config = {
     "browsertime": {
       "browser": data.browser,
       "iterations": data.iterations,
-      "spa": true,
+      "spa": data.spa,
       "preScript": "root/dist/proxy/proxy_start.js",
       "postScript": "root/dist/proxy/proxy_end.js",
       "summary": true,
@@ -203,9 +252,9 @@ async function createAProxyConfigFile(data: { webpageWithoutPIM: string, webpage
       "firefox.preference": {},
       "chrome.args": []
     },
-    "proxy.https": "127.0.0.1:22",
-    "proxy.http": "127.0.0.1:22",
-    "html":{
+    "proxy.https": `127.0.0.1:${data.port}`,
+    "proxy.http": `127.0.0.1:${data.port}`,
+    "html": {
       "showAllWaterfallSummary": true,
       "compareUrl": true
     },
@@ -216,26 +265,75 @@ async function createAProxyConfigFile(data: { webpageWithoutPIM: string, webpage
       "enable": true,
       "pageViews": 7
     },
-    "axe":{
+    "axe": {
       "enable": true
     },
-    "metrics":{
+    "metrics": {
       "list": true,
-      "filterList": true 
+      "filterList": true
     },
     "gzipHAR": false,
     "video": true,
     "logToFile": true,
-    "script_tag": data.script_tag
+    "script_tag": data.script_tag,
+    "port": data.port
   }
-  
 
-fs.writeFileSync('./config/temp-proxy.json', JSON.stringify(config));
-console.log("File created!");         
+  fs.writeFileSync(`./config/temp-proxy_${data.session}.json`, JSON.stringify(config));
 }
 
-async function createConfigFile(data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }) {
-let config =  {
+
+async function createAProxyConfigFileWithoutPIM(data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean, port: number,session:string }) {
+
+  let config = {
+    "browsertime": {
+      "browser": data.browser,
+      "iterations": data.iterations,
+      "spa": data.spa,
+      "preScript": "root/dist/proxy/proxy_start.js",
+      "postScript": "root/dist/proxy/proxy_end.js",
+      "summary": true,
+      "firefox.disableSafeBrowsing": true,
+      "firefox.acceptInsecureCerts": true,
+      "chrome.ignoreCertificateErrors": true,
+      "firefox.args": [],
+      "firefox.preference": {},
+      "chrome.args": []
+    },
+    "proxy.https": `127.0.0.1:${data.port}`,
+    "proxy.http": `127.0.0.1:${data.port}`,
+    "html": {
+      "showAllWaterfallSummary": true,
+      "compareUrl": true
+    },
+    "Text": {
+      "summary": false
+    },
+    "Sustainable": {
+      "enable": true,
+      "pageViews": 7
+    },
+    "axe": {
+      "enable": true
+    },
+    "metrics": {
+      "list": true,
+      "filterList": true
+    },
+    "gzipHAR": false,
+    "video": true,
+    "logToFile": true,
+    "script_tag": "#",
+    'port': data.port
+  }
+
+  fs.writeFileSync(`./config/temp-proxy_${data.session}.json`, JSON.stringify(config));
+}
+
+
+
+async function createConfigFile(data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean, session: string}) {
+  let config = {
     "browsertime": {
       "browser": data.browser,
       "iterations": data.iterations,
@@ -245,7 +343,7 @@ let config =  {
         "ignoreCertificateErrors": true
       }
     },
-    "html":{
+    "html": {
       "showAllWaterfallSummary": true,
       "compareUrl": true
     },
@@ -256,19 +354,18 @@ let config =  {
       "enable": true,
       "pageViews": 7
     },
-    "axe":{
+    "axe": {
       "enable": true
     },
-    "metrics":{
+    "metrics": {
       "list": true,
-      "filterList": true 
+      "filterList": true
     },
     "gzipHAR": false,
     "video": true
-  } 
+  }
 
-fs.writeFileSync('./config/temp-config.json', JSON.stringify(config));
-console.log("File created!");  
+  fs.writeFileSync(`./config/temp-config_${data.session}.json`, JSON.stringify(config));
 }
 
 

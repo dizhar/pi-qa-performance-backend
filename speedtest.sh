@@ -30,11 +30,17 @@ function local(){
 	echo `pwd`/$FILEPATH
 	echo `pwd`
 
+	while
+	port=$(shuf -n 1 -i 49152-65535)
+	netstat -atun | grep -q "$port"
+	do
+	continue
+	done
 
 
 		docker run --rm  \
 			-v `pwd`/data/piqaautomationstorage/sitespeed-result:/sitespeed-result \
-			-v `pwd`:/root $IMAGE --config root/"$FILEPATH" "$SITE"
+			-v `pwd`:/root  -p "$port":"$port" $IMAGE --config root/"$FILEPATH" "$SITE"
 }
 
 
