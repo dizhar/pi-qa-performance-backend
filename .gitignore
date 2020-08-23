@@ -35,8 +35,8 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-#site-results
-data
+#site-results folder
+data/piqaautomationstorage
 
 #Mozila
 .Mmzilla
