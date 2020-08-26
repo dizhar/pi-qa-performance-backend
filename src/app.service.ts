@@ -9,7 +9,7 @@ import { async } from 'rxjs';
 
 import * as fs from 'fs';
 import { AbstractHttpAdapter } from '@nestjs/core';
-import { RegExr } from "./support/RegExr";
+import { RegExr } from "./support/regexr";
 import {Create  } from './support/create';
 
 var tcpPortUsed = require('tcp-port-used');
