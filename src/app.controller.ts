@@ -20,22 +20,12 @@ export class AppController {
 
 
 
-
-//  @Get(':name')
-//  async remove(@Param('name') res: Response) {
-//    console.log(`${name}`);
-//    return res.status(HttpStatus.OK).send({name});
-//  }
-
-// @Get(':configFile')
-// remove(@Param('configFile') configFile: string,  @Res() res: Response) {
-//   return `This action returns a ${configFile} cat`;
-// }
-
-
 @Post("/remove")
+@HttpCode(200)
 async remove(@Body() body, @Res() res: Response): Promise<void> {
-  return this.appService.removeConfigFile(body)
+  this.appService.removeConfigFile(body).then(()=>{
+    return res.status(HttpStatus.OK);
+   }) 
 }
 
 

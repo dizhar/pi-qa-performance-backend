@@ -27,15 +27,17 @@ export class AppService {
   constructor() { }
 
   async removeConfigFile(list: {}[]): Promise<void>{
+    try {
       list.forEach((item)=>{
-       fs.unlinkSync(`./config/${item}`)
-      })
+        fs.unlinkSync(`./config/${item}`)
+       })
+    } catch (error) {}
   }
 
   async start(list: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }[]): Promise<Object[]> {
     let results = new Array();
     let uniqid: string = _RegExr.getUniquId();
-     _create.setSessionConfigFile(uniqid);
+    await  _create.setSessionConfigFile(uniqid);
 
 
     list.forEach(data => {
@@ -67,13 +69,14 @@ async function testQA(data: { webpageWithoutPIM: string, webpageWithPIM: string,
 
 
   await createAProxyConfigFileWithPIM(obj);
+  
   outPut['agent'] = await  getPageXrayWithoutPIM(`./speedtest.sh local config/temp-proxy_${data.session}.json`, data);
-  outPut['agent'].session = data;
+  outPut['agent'].session = obj;
 
 
   await createAProxyConfigFileWithoutPIM(obj)
   outPut['noAgent'] =  await getPageXrayWithoutPIM(`./speedtest.sh local config/temp-proxy_${data.session}.json`, data);
-  outPut['noAgent'].session = data;
+  outPut['noAgent'].session = obj;
 
   return Promise.resolve(outPut);
 }
