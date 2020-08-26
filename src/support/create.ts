@@ -8,18 +8,18 @@ public async setSessionConfigFile(uniqueId: string) {
         "sessionId": uniqueId
       }
 
-     await craeteDir("sessions");
+     await this.craeteDir("./sessions");
     fs.writeFileSync('./sessions/config-session.json', JSON.stringify(config));
 }
 
-
-
-}
-
-async function  craeteDir(dirname: string) {
-    var dir = `./${dirname}`;
+public async craeteDir(dirname: string) {
+    let dir = `${dirname}`;
 
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
     }
 }
+
+
+}
+
