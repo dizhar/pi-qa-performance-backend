@@ -39,4 +39,7 @@ lerna-debug.log*
 data/piqaautomationstorage
 
 #Mozila
-.Mmzilla
+.Mozilla
+
+#sessions folder
+sessions/
