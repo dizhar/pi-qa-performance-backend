@@ -155,7 +155,7 @@ async function getPageXrayWithPIMAgent(execute: string, data: { webpageWithoutPI
     let harPath: string = `${lastword}${har}`.trim();
     // let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
 
-    let pageXray = shell.exec(`pagexray --pretty .${harPath}`.trim(), { silent: true }).stdout;
+    let pageXray = shell.exec(`pagexray --pretty ./${harPath}`.trim(), { silent: true }).stdout;
 
     new Promise(() => {
       parse = JSON.parse(pageXray)
@@ -201,7 +201,7 @@ async function getPageXrayWithoutPIM(execute: string, data: { webpageWithoutPIM:
     console.log("path:", `${__dirname}/../data/piqaautomationstorage/${harPath}`)
     // let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
 
-    let pageXray = shell.exec(`pagexray --pretty .${harPath}`.trim(), { silent: true }).stdout;
+    let pageXray = shell.exec(`pagexray --pretty ./${harPath}`.trim(), { silent: true }).stdout;
 
     new Promise(() => {
       parse = JSON.parse(pageXray)
