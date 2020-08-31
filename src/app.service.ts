@@ -75,12 +75,12 @@ async function testQA(data: { webpageWithoutPIM: string, webpageWithPIM: string,
 
     await createAProxyConfigFileWithPIM(obj);
 
-    outPut['agent'] = await getPageXrayWithoutPIM(`./speedtest.sh local config/temp-proxy_${data.session}.json`, data);
+    outPut['agent'] = await getPageXrayWithoutPIM(`./sitespeed.sh run config/temp-proxy_${data.session}.json`, data);
     outPut['agent'].session = obj;
 
 
     await createAProxyConfigFileWithoutPIM(obj)
-    outPut['noAgent'] = await getPageXrayWithoutPIM(`./speedtest.sh local config/temp-proxy_${data.session}.json`, data);
+    outPut['noAgent'] = await getPageXrayWithoutPIM(`./sitespeed.sh run config/temp-proxy_${data.session}.json`, data);
     outPut['noAgent'].session = obj;
 
     return Promise.resolve(outPut);
@@ -100,10 +100,10 @@ async function testProduction(data: { webpageWithoutPIM: string, webpageWithPIM:
 
     await createConfigFile(data)
 
-    outPut['agent'] = await getPageXrayWithPIMAgent(`./speedtest.sh local config/temp-config_${data.session}.json`, data);
+    outPut['agent'] = await getPageXrayWithPIMAgent(`./sitespeed.sh run config/temp-config_${data.session}.json`, data);
     outPut['agent'].session = data;
 
-    outPut['noAgent'] = await getPageXrayWithoutPIM(`./speedtest.sh local config/temp-config_${data.session}.json`, data);
+    outPut['noAgent'] = await getPageXrayWithoutPIM(`./sitespeed.sh run config/temp-config_${data.session}.json`, data);
     outPut['noAgent'].sesssion = data;
 
     return Promise.resolve(outPut);
@@ -153,9 +153,7 @@ async function getPageXrayWithPIMAgent(execute: string, data: { webpageWithoutPI
 
     let link: string = `${lastword}/index.html`.trim();
     let harPath: string = `${lastword}${har}`.trim();
-    // let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
-
-    let pageXray = shell.exec(`pagexray --pretty ./${harPath}`.trim(), { silent: true }).stdout;
+    let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
 
     new Promise(() => {
       parse = JSON.parse(pageXray)
@@ -191,17 +189,10 @@ async function getPageXrayWithoutPIM(execute: string, data: { webpageWithoutPIM:
     let folderWPathWebsite = getfolderWPathWebsite(agentLog, data)
     let har: string = getHARFile(agentLog, data, lastword, folderWPathWebsite);
 
-    console.log("har:", `${har}`);
-   
-
-
     let link: string = `${lastword}/index.html`.trim();
     let harPath: string = `${lastword}${har}`.trim();
-    console.log("harpath:", harPath);
-    console.log("path:", `${__dirname}/../data/piqaautomationstorage/${harPath}`)
-    // let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
+    let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
 
-    let pageXray = shell.exec(`pagexray --pretty ./${harPath}`.trim(), { silent: true }).stdout;
 
     new Promise(() => {
       parse = JSON.parse(pageXray)
