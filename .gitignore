@@ -37,6 +37,8 @@ lerna-debug.log*
 
 #site-results folder
 data/piqaautomationstorage
+sitespeed-result
+
 
 #Mozila
 .Mozilla
