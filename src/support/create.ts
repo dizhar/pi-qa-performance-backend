@@ -8,8 +8,10 @@ public async setSessionConfigFile(uniqueId: string) {
         "sessionId": uniqueId
       }
 
-     await this.craeteDir("./sessions");
-    fs.writeFileSync('./sessions/config-session.json', JSON.stringify(config));
+    // await this.craeteDir("./sessions");
+    // fs.writeFileSync('./sessions/config-session.json', JSON.stringify(config));
+
+    fs.writeFileSync('./config/config-session.json', JSON.stringify(config));
 }
 
 public async craeteDir(dirname: string) {

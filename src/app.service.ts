@@ -137,11 +137,9 @@ async function getAvilablePort(): Promise<number> {
 async function getPageXrayWithPIMAgent(execute: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }): Promise<object> {
   try {
 
-
     let lastword: string;
     let parse: any;
     let agentLog: string = shell.exec(`${execute} ${data.webpageWithPIM}`, { silent: true }).stdout;
-
 
     new Promise(() => {
       lastword = getLastword(agentLog);
