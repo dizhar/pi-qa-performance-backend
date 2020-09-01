@@ -15,7 +15,7 @@ echo "Pulling image $IMAGE"
 docker pull $IMAGE
 
 echo ""
-echio "Running sitespeed.io"
+echo "Running sitespeed.io"
 docker run --rm -v sitespeed-config:/root/config -v sitespeed-script:/root/script -v sitespeed-result:/sitespeed-result $IMAGE --config root/$CONFIG_PATH $SITE
 
     
