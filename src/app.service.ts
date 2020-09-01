@@ -139,21 +139,21 @@ async function getAvilablePort(): Promise<number> {
 async function getPageXrayWithPIMAgent(execute: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }): Promise<object> {
   try {
 
-    let lastword: string;
+    let path: string;
     let parse: any;
     let agentLog: string = shell.exec(`${execute} ${data.webpageWithPIM}`, { silent: false }).stdout;
 
     new Promise(() => {
-      lastword = getLastword(agentLog);
+      path = getLastword(agentLog);
     });
 
 
     let folderWPathWebsite: string = getfolderWPathWebsite(agentLog, data)
-    let har: string = getHARFile(agentLog, data, lastword, folderWPathWebsite);
+    let har: string = getHARFile(agentLog, data, path, folderWPathWebsite);
 
 
-    let link: string = `${lastword}/index.html`.trim();
-    let harPath: string = `${lastword}${har}`.trim();
+    let link: string = `${path}/index.html`.trim();
+    let harPath: string = `${path}${har}`.trim();
     
     // let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
     let pageXray = shell.exec(`pagexray --pretty ${harPath}`.trim(), { silent: false }).stdout;
@@ -180,20 +180,20 @@ async function getPageXrayWithPIMAgent(execute: string, data: { webpageWithoutPI
 
 async function getPageXrayWithoutPIM(execute: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }): Promise<object> {
   try {
-    let lastword: string;
+    let path: string;
     let parse: any;
     let agentLog = shell.exec(`${execute} ${data.webpageWithoutPIM}`, { silent: false }).stdout;
 
     new Promise(() => {
-      lastword = getLastword(agentLog);
+      path = getLastword(agentLog);
     });
 
 
     let folderWPathWebsite = getfolderWPathWebsite(agentLog, data)
-    let har: string = getHARFile(agentLog, data, lastword, folderWPathWebsite);
+    let har: string = getHARFile(agentLog, data, path, folderWPathWebsite);
 
-    let link: string = `${lastword}/index.html`.trim();
-    let harPath: string = `${lastword}${har}`.trim();
+    let link: string = `${path}/index.html`.trim();
+    let harPath: string = `${path}${har}`.trim();
 
     // let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
     let pageXray = shell.exec(`pagexray --pretty ${harPath}`.trim(), { silent: false }).stdout;
@@ -219,8 +219,8 @@ async function getPageXrayWithoutPIM(execute: string, data: { webpageWithoutPIM:
 
 function getfolderWPathWebsite(outPut: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }): string {
   try {
-    let lastword: string = getLastword(outPut);
-    let folder: string = getFolder(lastword);
+    let path: string = getLastword(outPut);
+    let folder: string = getFolder(path);
     let website: string = getWithoutHttp(data.webpageWithoutPIM);
     return `${folder}/pages/${website}/`;
   } catch (error) {
@@ -231,12 +231,12 @@ function getfolderWPathWebsite(outPut: string, data: { webpageWithoutPIM: string
 
 function getHARFile(outPut: string, data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean }, lastWord: string, folderWPathWebsite: string): string {
   try {
-    let lastword: string = getLastword(outPut);
-    let folder: string = getFolder(lastword);
+    let path: string = getLastword(outPut);
+    let folder: string = getFolder(path);
     let website: string = getWithoutHttp(data.webpageWithoutPIM);
 
     // let childDirectory: string = shell.exec(`cd ${__dirname}/../data/piqaautomationstorage/${lastword}${folderWPathWebsite} && ls -1d */`, { silent: true }).stdout;
-    let childDirectory: string = shell.exec(`cd ${lastword}${folderWPathWebsite} && ls -1d */`, { silent: false }).stdout;
+    let childDirectory: string = shell.exec(`cd ${path}${folderWPathWebsite} && ls -1d */`, { silent: false }).stdout;
 
     if (childDirectory.trim() === 'data/') {
       return `${folder}/pages/${website}/data/browsertime.har`;
@@ -251,14 +251,13 @@ function getHARFile(outPut: string, data: { webpageWithoutPIM: string, webpageWi
 function getLastword(outPut: string): string {
   try {
     let lastline = outPut.split('\n')[outPut.split('\n').length - 2];
-    lastline = lastline.split(" ")[lastline.split(" ").length - 1];
+    let last_item_in_line = lastline.split(" ")[lastline.split(" ").length - 1];
 
-    // Tsadok 
-    // ---------------------------
+    // remove '/' from the beginning of the string
     // example: '/sitespeed-result/cashier.piesec.com/2020-09-01-10-23-33'
-    // added '.' before the path
-    lastline = `.${lastline}`
-    return lastline;
+    let path = last_item_in_line.substring(1)
+
+    return path;
 
   } catch (error) {
     throw error;
@@ -293,8 +292,10 @@ function getWithoutHttp(url: string): string {
 
 async function getLink(log: string, data: object): Promise<string> {
   try {
-    let lastword: string = getLastword(log);
-    return `${lastword}/index.html`;
+    let path: string = getLastword(log);
+
+    // path withour '/' in the beginning
+    return `${path}/index.html`;
   } catch (error) {
     throw error;
   }
