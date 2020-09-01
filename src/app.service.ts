@@ -139,7 +139,7 @@ async function getPageXrayWithPIMAgent(execute: string, data: { webpageWithoutPI
 
     let lastword: string;
     let parse: any;
-    let agentLog: string = shell.exec(`${execute} ${data.webpageWithPIM}`, { silent: true }).stdout;
+    let agentLog: string = shell.exec(`${execute} ${data.webpageWithPIM}`, { silent: false }).stdout;
 
     new Promise(() => {
       lastword = getLastword(agentLog);
@@ -154,7 +154,7 @@ async function getPageXrayWithPIMAgent(execute: string, data: { webpageWithoutPI
     let harPath: string = `${lastword}${har}`.trim();
     
     // let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
-    let pageXray = shell.exec(`pagexray --pretty ${harPath}`.trim(), { silent: true }).stdout;
+    let pageXray = shell.exec(`pagexray --pretty ${harPath}`.trim(), { silent: false }).stdout;
 
     new Promise(() => {
       parse = JSON.parse(pageXray)
@@ -180,7 +180,7 @@ async function getPageXrayWithoutPIM(execute: string, data: { webpageWithoutPIM:
   try {
     let lastword: string;
     let parse: any;
-    let agentLog = shell.exec(`${execute} ${data.webpageWithoutPIM}`, { silent: true }).stdout;
+    let agentLog = shell.exec(`${execute} ${data.webpageWithoutPIM}`, { silent: false }).stdout;
 
     new Promise(() => {
       lastword = getLastword(agentLog);
@@ -194,7 +194,7 @@ async function getPageXrayWithoutPIM(execute: string, data: { webpageWithoutPIM:
     let harPath: string = `${lastword}${har}`.trim();
 
     // let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
-    let pageXray = shell.exec(`pagexray --pretty ${harPath}`.trim(), { silent: true }).stdout;
+    let pageXray = shell.exec(`pagexray --pretty ${harPath}`.trim(), { silent: false }).stdout;
 
 
     new Promise(() => {
@@ -235,7 +235,7 @@ function getHARFile(outPut: string, data: { webpageWithoutPIM: string, webpageWi
     let website: string = getWithoutHttp(data.webpageWithoutPIM);
 
     // let childDirectory: string = shell.exec(`cd ${__dirname}/../data/piqaautomationstorage/${lastword}${folderWPathWebsite} && ls -1d */`, { silent: true }).stdout;
-    let childDirectory: string = shell.exec(`cd ${lastword}${folderWPathWebsite} && ls -1d */`, { silent: true }).stdout;
+    let childDirectory: string = shell.exec(`cd ${lastword}${folderWPathWebsite} && ls -1d */`, { silent: false }).stdout;
 
     if (childDirectory.trim() === 'data/') {
       return `${folder}/pages/${website}/data/browsertime.har`;
