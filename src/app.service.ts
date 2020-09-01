@@ -50,9 +50,11 @@ export class AppService {
 
         let obj = Object.assign(data, { session: uniqid });
         switch (data.goal) {
-          case "test production": results.push(testProduction(obj))
+          case "test production": 
+            results.push(testProduction(obj))
             break;
-          case "test qa": results.push(testQA(obj));
+          case "test qa": 
+            results.push(testQA(obj));
             break;
           default: null;
             break;
@@ -157,8 +159,7 @@ async function getPageXrayWithPIMAgent(execute: string, data: { webpageWithoutPI
     let pageXray = shell.exec(`pagexray --pretty ${harPath}`.trim(), { silent: false }).stdout;
 
     new Promise(() => {
-      // parse = JSON.parse(pageXray)
-      parse = JSON.parse(`${harPath}`)
+      parse = JSON.parse(pageXray)
     })
 
 
@@ -198,8 +199,7 @@ async function getPageXrayWithoutPIM(execute: string, data: { webpageWithoutPIM:
     let pageXray = shell.exec(`pagexray --pretty ${harPath}`.trim(), { silent: false }).stdout;
 
     new Promise(() => {
-      // parse = JSON.parse(pageXray)
-      parse = JSON.parse(`${harPath}`)
+      parse = JSON.parse(pageXray)
     })
 
 
