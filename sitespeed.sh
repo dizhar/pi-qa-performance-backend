@@ -23,13 +23,8 @@ function run(){
 	#	-v `pwd`/data/piqaautomationstorage/sitespeed-result:/sitespeed-result \
 	#	-v `pwd`:/root  -p "$port":"$port" $IMAGE --config root/"$CONFIG_PATH" "$SITE"
 
-	docker run --rm  \
-	   	-v sitespeed-config:/root/config \
-		-v sitespeed-script:/root/script \ 
-		-v sitespeed-result:/sitespeed-result \
-	    $IMAGE --config root/$CONFIG_PATH $SITE	
+	docker run --rm -v sitespeed-config:/root/config -v sitespeed-script:/root/script -v sitespeed-result:/sitespeed-result $IMAGE --config root/$CONFIG_PATH $SITE	
 }
-
 
 case $COMMAND in 
 	"run" 	) 
