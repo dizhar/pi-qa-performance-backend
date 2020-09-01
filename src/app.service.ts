@@ -257,6 +257,8 @@ function getLastword(outPut: string): string {
     // example: '/sitespeed-result/cashier.piesec.com/2020-09-01-10-23-33'
     // added '.' before the path
     lastline = `.${lastline}`
+    return lastline;
+    
   } catch (error) {
     throw error;
   }
