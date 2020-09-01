@@ -250,7 +250,13 @@ function getHARFile(outPut: string, data: { webpageWithoutPIM: string, webpageWi
 function getLastword(outPut: string): string {
   try {
     let lastline = outPut.split('\n')[outPut.split('\n').length - 2];
-    return lastline.split(" ")[lastline.split(" ").length - 1];
+    lastline = lastline.split(" ")[lastline.split(" ").length - 1];
+
+    // Tsadok 
+    // ---------------------------
+    // example: '/sitespeed-result/cashier.piesec.com/2020-09-01-10-23-33'
+    // added '.' before the path
+    lastline = `.${lastline}`
   } catch (error) {
     throw error;
   }
@@ -285,7 +291,7 @@ function getWithoutHttp(url: string): string {
 async function getLink(log: string, data: object): Promise<string> {
   try {
     let lastword: string = getLastword(log);
-    return `.${lastword}/index.html`;
+    return `${lastword}/index.html`;
   } catch (error) {
     throw error;
   }
