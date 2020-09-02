@@ -178,6 +178,15 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 
 		let script: string = use_proxy ? `./sitespeed.sh config/${data.configFileProxy}`:  `./sitespeed.sh config/${data.configFile}`;
 		let webpage: string = use_page_integrity ? `${data.webpageWithPIM}` : `${data.webpageWithoutPIM}`;
+
+		//if ( webpage == ){
+		//	throw "webpage "
+		//}
+
+		console.log("================================================")
+		console.log (`webpage url when use_page_integrity=${use_page_integrity} is '${webpage}'`)
+		console.log("================================================")
+
 		let agentLog: string = shell.exec(`${script} ${webpage}`, { silent: false }).stdout;
 
 		// new Promise(() => {
