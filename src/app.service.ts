@@ -30,6 +30,7 @@ interface Data{
 	configFile: string;
 	configFileProxy: string;
 	port: number;
+	website: string;
   }
 
 @Injectable()
@@ -74,6 +75,8 @@ export class AppService {
 				
 				Object.assign(data, { configFile: `temp-config_${data.session}.json` });
 				Object.assign(data, { configFileProxy: `temp-proxy_${data.session}.json` });
+
+				Object.assign(data, { website: remove_http_prefix(data.webpageWithoutPIM) });
 
 				switch (data.goal) {
 					case "test production":
@@ -201,13 +204,12 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		let client_link: string = `${client_path}/index.html`.trim();
 		let client_har_path: string = `${client_path}${har_file}`.trim();
 
-		let obj = {
+		let result = {
 			link: client_link,
 			harPath: client_har_path,
 			pageXray: parse
 		};
-
-		return Promise.resolve(obj);
+		return Promise.resolve(result);
 	} catch (error) {
 		throw error;
 	}
@@ -217,8 +219,8 @@ function getfolderWPathWebsite(outPut: string, data: Data): string {
 	try {
 		let path: string = getLastword(outPut);
 		let folder: string = getFolder(path);
-		let website: string = remove_http_prefix(data.webpageWithoutPIM);
-		return `${folder}/pages/${website}/`;
+		//let website: string = remove_http_prefix(data.webpageWithoutPIM);
+		return `${folder}/pages/${data.website}/`;
 	} catch (error) {
 		throw error;
 	}
@@ -229,16 +231,15 @@ function get_har_file(outPut: string, data: Data, lastWord: string, folderWPathW
 		let path: string = getLastword(outPut);
 		let folder: string = getFolder(path);
 
-		// get the domain name  without http or https (e.g. in the format 'www.mrporter.com')
-		let website: string = remove_http_prefix(data.webpageWithoutPIM);
+		// let website: string = remove_http_prefix(data.webpageWithoutPIM);
 
 		// let sub_folder: string = shell.exec(`cd ${__dirname}/../data/piqaautomationstorage/${lastword}${folderWPathWebsite} && ls -1d */`, { silent: true }).stdout;
 		let sub_folder: string = shell.exec(`cd ${path}${folderWPathWebsite} && ls -1d */`, { silent: false }).stdout;
 
 		if (sub_folder.trim() === 'data/') {
-			return `${folder}/pages/${website}/data/browsertime.har`;
+			return `${folder}/pages/${data.website}/data/browsertime.har`;
 		} else {
-			return `${folder}/pages/${website}/${sub_folder.replace(/(\r\n|\n|\r)/gm, "")}/data/browsertime.har`;
+			return `${folder}/pages/${data.website}/${sub_folder.replace(/(\r\n|\n|\r)/gm, "")}/data/browsertime.har`;
 		}
 	} catch (error) {
 		throw error;
@@ -283,6 +284,7 @@ function getFolder(outPut: string): string {
 }
 
 function remove_http_prefix(url: string): string {
+	// get the domain name  without http or https (e.g. in the format 'www.mrporter.com')
 	try {
 		return url.replace(/^(?:https?:\/\/)?/i, "").split('/')[0];
 	} catch (error) {
