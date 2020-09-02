@@ -67,6 +67,11 @@ export class AppService {
 				//   _create.setSessionConfigFile(uniqid);
 				// });
 
+				console.log("================================================")
+				console.log (`webpage with Page Integrity agent is '${source_data.webpageWithPIM}'`)
+				console.log (`webpage without Page Integrity agent is '${source_data.webpageWithoutPIM}'`)
+				console.log("================================================")
+
 				let data: Data = {} as any;
 				Object.assign(data, source_data)
 
