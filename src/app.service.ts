@@ -61,7 +61,6 @@ export class AppService {
 			let unique_id: string = _RegExr.getUniquId();
 			await _create.setSessionConfigFile(unique_id);
 
-
 			list.forEach(source_data => {
 				// let uniqid: string = _RegExr.getUniquId();
 				// new Promise(() => {
@@ -78,6 +77,11 @@ export class AppService {
 				Object.assign(data, { configFileProxy: `temp-proxy_${data.session}.json` });
 
 				Object.assign(data, { website: remove_http_prefix(data.webpageWithoutPIM) });
+
+				console.log("================================================")
+				console.log (`webpage with Page Integrity agent is '${data.webpageWithPIM}'`)
+				console.log (`webpage without Page Integrity agent is '${data.webpageWithoutPIM}'`)
+				console.log("================================================")
 
 				switch (data.goal) {
 					case "test production":
