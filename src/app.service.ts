@@ -149,8 +149,19 @@ async function run_tests(data: Data, env: string): Promise<object> {
 		}
 		
 		// delete config files
-		fs.unlinkSync(`./config/${data.configFile}`)
-		fs.unlinkSync(`./config/${data.configFileProxy}`)
+		// fs.unlinkSync(`./config/${data.configFile}`)
+		// fs.unlinkSync(`./config/${data.configFileProxy}`)
+
+		fs.unlink(`./config/${data.configFile}`, (err) => {
+			if (err) throw err;
+			console.log(`./config/${data.configFile} was deleted.`);
+		});
+
+		fs.unlink(`./config/${data.configFileProxy}`, (err) => {
+			if (err) throw err;
+			console.log(`./config/${data.configFileProxy} was deleted.`);
+		});
+
 
 		return Promise.resolve(output);
 	} catch (error) {
@@ -289,7 +300,6 @@ function getLastword(log: string): string {
 function get_client_path(path) {
 	return path.replace('sitespeed-result/', '')
 }
-
 
 function getFolder(path: string): string {
 	try {
