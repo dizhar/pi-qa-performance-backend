@@ -31,6 +31,7 @@ interface Data{
 	configFileProxy: string;
 	port: number;
 	website: string;
+	sitespeed_result_path: string;
   }
 
 @Injectable()
@@ -133,8 +134,9 @@ async function run_tests(data: Data, env: string): Promise<object> {
 				output['noAgent'].session = data;
 				
 				break;
-			default: null;
-				break;
+			
+			// default: null;
+			//	break;
 		}
 		
 		// delete config files
@@ -171,7 +173,7 @@ function get_har_local_path(full_path, har_file){
 // getPageXrayWithoutPIM
 async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integrity: boolean): Promise<object> {
 	try {
-		let path: string;
+		// let path: string;
 		let parse: any;
 
 		let script: string = use_proxy ? `./sitespeed.sh config/${data.configFileProxy}`:  `./sitespeed.sh config/${data.configFile}`;
@@ -181,14 +183,16 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		// new Promise(() => {
 		//	path = getLastword(agentLog);
 		// });
+		
+		// path = getLastword(agentLog);
 
-		path = getLastword(agentLog);
+		Object.assign(data, { sitespeed_result_path: getLastword(agentLog) });
 
-		let folderWPathWebsite = getfolderWPathWebsite(agentLog, data)
-		let har_file: string = get_har_file(agentLog, data, path, folderWPathWebsite);
+		let folderWPathWebsite = getfolderWPathWebsite(data)
+		let har_file: string = get_har_file(data, folderWPathWebsite);
 
 		// let harPath: string = `${path}${har_file}`.trim();
-		let har_path: string = get_har_local_path(path, har_file)
+		let har_path: string = get_har_local_path(data.sitespeed_result_path, har_file)
 
 		// let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
 		let pageXray = shell.exec(`pagexray --pretty ./${har_path}`.trim(), { silent: false }).stdout;
@@ -198,7 +202,7 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		// })
 		parse = JSON.parse(pageXray)
 
-		let client_path = get_client_path(path)
+		let client_path = get_client_path(data.sitespeed_result_path)
 
 		// let link: string = `${path}/index.html`.trim();
 		let client_link: string = `${client_path}/index.html`.trim();
@@ -215,10 +219,10 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 	}
 }
 
-function getfolderWPathWebsite(outPut: string, data: Data): string {
+function getfolderWPathWebsite(data: Data): string {
 	try {
-		let path: string = getLastword(outPut);
-		let folder: string = getFolder(path);
+		// let path: string = getLastword(outPut);
+		let folder: string = getFolder(data.sitespeed_result_path);
 		//let website: string = remove_http_prefix(data.webpageWithoutPIM);
 		return `${folder}/pages/${data.website}/`;
 	} catch (error) {
@@ -226,9 +230,10 @@ function getfolderWPathWebsite(outPut: string, data: Data): string {
 	}
 }
 
-function get_har_file(outPut: string, data: Data, lastWord: string, folderWPathWebsite: string): string {
+function get_har_file(data: Data,folderWPathWebsite: string): string {
 	try {
-		let path: string = getLastword(outPut);
+		// let path: string = getLastword(outPut);
+		let path: string = data.sitespeed_result_path;
 		let folder: string = getFolder(path);
 
 		// let website: string = remove_http_prefix(data.webpageWithoutPIM);
@@ -255,6 +260,10 @@ function getLastword(outPut: string): string {
 		// example: '/sitespeed-result/cashier.piesec.com/2020-09-01-10-23-33'
 		let path = last_item_in_line.substring(1)
 		//let path = last_item_in_line.replace('/sitespeed-result/', '')
+
+		if (! path.startsWith("sitespeed_result/")){
+			throw `Could not parse path to sitespeed-result. Found '${path}'.`
+		}
 
 		return path;
 
@@ -292,12 +301,10 @@ function remove_http_prefix(url: string): string {
 	}
 }
 
-async function getLink(log: string, data: object): Promise<string> {
+async function getLink(data: Data): Promise<string> {
 	try {
-		let path: string = getLastword(log);
-
-		// path withour '/' in the beginning
-		return `${path}/index.html`;
+		let client_path: string = get_client_path(data.sitespeed_result_path)
+		return `${client_path}/index.html`;
 	} catch (error) {
 		throw error;
 	}
