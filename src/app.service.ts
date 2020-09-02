@@ -279,7 +279,7 @@ function getLastword(outPut: string): string {
 		let path = last_item_in_line.substring(1)
 		//let path = last_item_in_line.replace('/sitespeed-result/', '')
 
-		if (! path.startsWith("sitespeed_result/")){
+		if (! path.startsWith("sitespeed-result/")){
 			throw `Could not parse path to sitespeed-result. Found '${path}'.`
 		}
 
