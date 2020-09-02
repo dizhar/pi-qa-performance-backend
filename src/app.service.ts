@@ -75,7 +75,6 @@ export class AppService {
 				let data: Data = {} as any;
 				Object.assign(data, source_data)
 
-				// let obj = Object.assign(data, { session: uniqid });
 				Object.assign(data, { session: unique_id });
 				
 				Object.assign(data, { configFile: `temp-config_${data.session}.json` });
@@ -96,7 +95,6 @@ export class AppService {
 					case "test qa":
 						//results.push(testQA(data));
 						results.push(run_tests(data, "qa"));
-						
 						break;
 					default: null;
 						break;
@@ -118,7 +116,7 @@ async function run_tests(data: Data, env: string): Promise<object> {
 
 		switch (env) {
 			case "prod":
-				await createConfigFile(data);
+				await create_config_file(data);
 				use_proxy = false;
 	
 				output['agent'] = await execute_sitespeed(data, use_proxy, true);
@@ -134,11 +132,13 @@ async function run_tests(data: Data, env: string): Promise<object> {
 				Object.assign(data, { port: await getAvilablePort() });
 				use_proxy = true;
 
-				await createAProxyConfigFileWithPIM(data);
-				output['agent'] = await execute_sitespeed(data, use_proxy, true);
+				// Note that we don't use Page Integrity agent on both calls to execute_sitespeed!
+
+				await create_proxy_config_file_with_pim(data);
+				output['agent'] = await execute_sitespeed(data, use_proxy, false);
 				output['agent'].session = data;
 		
-				await createAProxyConfigFileWithoutPIM(data)
+				await create_proxy_config_file_without_pim(data)
 				output['noAgent'] = await execute_sitespeed(data, use_proxy, false);
 				output['noAgent'].session = data;
 				
@@ -149,8 +149,8 @@ async function run_tests(data: Data, env: string): Promise<object> {
 		}
 		
 		// delete config files
-		//fs.unlinkSync(`./config/${data.configFile}`)
-		//fs.unlinkSync(`./config/${data.configFileProxy}`)
+		fs.unlinkSync(`./config/${data.configFile}`)
+		fs.unlinkSync(`./config/${data.configFileProxy}`)
 
 		return Promise.resolve(output);
 	} catch (error) {
@@ -182,8 +182,6 @@ function get_har_local_path(full_path, har_file){
 // getPageXrayWithoutPIM
 async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integrity: boolean): Promise<object> {
 	try {
-		// let path: string;
-		let parse: any;
 
 		let script: string = use_proxy ? `./sitespeed.sh config/${data.configFileProxy}`:  `./sitespeed.sh config/${data.configFile}`;
 		let webpage: string = use_page_integrity ? `${data.webpageWithPIM}` : `${data.webpageWithoutPIM}`;
@@ -202,8 +200,6 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		//	path = getLastword(agentLog);
 		// });
 		
-		// path = getLastword(agentLog);
-
 		Object.assign(data, { sitespeed_result_path: getLastword(agentLog) });
 
 		let folderWPathWebsite = getfolderWPathWebsite(data)
@@ -212,13 +208,12 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		// let harPath: string = `${path}${har_file}`.trim();
 		let har_path: string = get_har_local_path(data.sitespeed_result_path, har_file)
 
-		// let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
-		let pageXray = shell.exec(`pagexray --pretty ./${har_path}`.trim(), { silent: false }).stdout;
+		let json = shell.exec(`pagexray --pretty ./${har_path}`.trim(), { silent: false }).stdout;
 
 		// new Promise(() => {
 		//	parse = JSON.parse(pageXray)
 		// })
-		parse = JSON.parse(pageXray)
+		let pageXray_obj: any = JSON.parse(json)
 
 		let client_path = get_client_path(data.sitespeed_result_path)
 
@@ -229,9 +224,10 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		let result = {
 			link: client_link,
 			harPath: client_har_path,
-			pageXray: parse
+			pageXray: pageXray_obj
 		};
 		return Promise.resolve(result);
+
 	} catch (error) {
 		throw error;
 	}
@@ -269,9 +265,9 @@ function get_har_file(data: Data,folderWPathWebsite: string): string {
 	}
 }
 
-function getLastword(outPut: string): string {
+function getLastword(log: string): string {
 	try {
-		let lastline = outPut.split('\n')[outPut.split('\n').length - 2];
+		let lastline = log.split('\n')[log.split('\n').length - 2];
 		let last_item_in_line = lastline.split(" ")[lastline.split(" ").length - 1];
 
 		// remove '/' from the beginning of the string
@@ -295,9 +291,9 @@ function get_client_path(path) {
 }
 
 
-function getFolder(outPut: string): string {
+function getFolder(path: string): string {
 	try {
-		let list = outPut.split('/');
+		let list = path.split('/');
 		let cutofPoint = false;
 		let sentence: string = '';
 		list.forEach(item => {
@@ -328,7 +324,7 @@ async function getLink(data: Data): Promise<string> {
 	}
 }
 
-async function createAProxyConfigFileWithPIM(data: Data) {
+async function create_proxy_config_file_with_pim(data: Data) {
 	try {
 		let config = {
 			"browsertime": {
@@ -380,7 +376,7 @@ async function createAProxyConfigFileWithPIM(data: Data) {
 	}
 }
 
-async function createAProxyConfigFileWithoutPIM(data: Data) {
+async function create_proxy_config_file_without_pim(data: Data) {
 	try {
 		let config = {
 			"browsertime": {
@@ -432,7 +428,7 @@ async function createAProxyConfigFileWithoutPIM(data: Data) {
 	}
 }
 
-async function createConfigFile(data: Data) {
+async function create_config_file(data: Data) {
 	try {
 		let config = {
 			"browsertime": {
