@@ -186,8 +186,8 @@ async function run_tests(data: Data, env: string): Promise<object> {
 		}
 		
 		// delete config files
-		fs.unlinkSync(`./config/${data.configFile}`)
-		fs.unlinkSync(`./config/${data.configFileProxy}`)
+		//fs.unlinkSync(`./config/${data.configFile}`)
+		//fs.unlinkSync(`./config/${data.configFileProxy}`)
 
 		return Promise.resolve(output);
 	} catch (error) {
