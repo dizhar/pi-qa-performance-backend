@@ -97,54 +97,6 @@ export class AppService {
 	}
 }
 
-/*
-// data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean, session: string }
-async function testQA(data: Data) {
-	try {
-		let outPut = new Object();
-
-		Object.assign(data, { port: await getAvilablePort() });
-
-		await createAProxyConfigFileWithPIM(data);
-
-		let use_proxy: boolean = true;
-		let use_page_integrity: boolean = false;
-
-		outPut['agent'] = await execute_sitespeed(data, use_proxy, use_page_integrity);
-		outPut['agent'].session = data;
-
-		await createAProxyConfigFileWithoutPIM(data)
-		outPut['noAgent'] = await execute_sitespeed(data, use_proxy, use_page_integrity);
-		outPut['noAgent'].session = data;
-
-		return Promise.resolve(outPut);
-	} catch (error) {
-		throw error
-	}
-}
-
-async function testProduction(data: Data): Promise<object> {
-			
-	try {
-		let outPut = new Object();
-
-		await createConfigFile(data)
-
-		let use_proxy: boolean = false;
-
-		// outPut['agent'] = await getPageXrayWithPIMAgent(data, use_proxy);
-		outPut['agent'] = await execute_sitespeed(data, use_proxy, true);
-		outPut['agent'].session = data;
-
-		outPut['noAgent'] = await execute_sitespeed(data, use_proxy, false);
-		outPut['noAgent'].sesssion = data;
-
-		return Promise.resolve(outPut);
-	} catch (error) {
-		throw error;
-	}
-}
-*/
 async function run_tests(data: Data, env: string): Promise<object> {
 			
 	try {
@@ -167,12 +119,9 @@ async function run_tests(data: Data, env: string): Promise<object> {
 			case "qa":
 
 				Object.assign(data, { port: await getAvilablePort() });
+				use_proxy = true;
 
 				await createAProxyConfigFileWithPIM(data);
-		
-				use_proxy = true;
-			
-				// ????? use_page_integrity
 				output['agent'] = await execute_sitespeed(data, use_proxy, true);
 				output['agent'].session = data;
 		
@@ -211,53 +160,6 @@ async function getAvilablePort(): Promise<number> {
 
 	}
 }
-/*
-async function getPageXrayWithPIMAgent(data: Data, use_proxy: boolean): Promise<object> {
-
-	try {
-
-		let path: string;
-		let parse: any;
-
-		let script: string = use_proxy ? `./sitespeed.sh config/${data.configFileProxy}`:  `./sitespeed.sh config/${data.configFile}`;
-		let agentLog: string = shell.exec(`${script} ${data.webpageWithPIM}`, { silent: false }).stdout;
-
-		new Promise(() => {
-			path = getLastword(agentLog);
-		});
-
-		let folderWPathWebsite: string = getfolderWPathWebsite(agentLog, data)
-		let har_file: string = get_har_file(agentLog, data, path, folderWPathWebsite);
-
-		// let harPath: string = `./${path}${har}`.trim();
-		let har_path: string = get_har_local_path(path, har_file)
-
-		// let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
-		let pageXray = shell.exec(`pagexray --pretty ${har_path}`.trim(), { silent: false }).stdout;
-
-		new Promise(() => {
-			parse = JSON.parse(pageXray)
-		})
-
-		let client_path = get_client_path(path)
-
-		// let link: string = `${path}/index.html`.trim();
-		let client_link: string = `${client_path}/index.html`.trim();
-		let client_har_path: string = `${client_path}${har_file}`.trim();
-
-		let obj = {
-			link: client_link,
-			harPath: client_har_path,
-			pageXray: parse
-		};
-
-		return Promise.resolve(obj);
-
-	} catch (error) {
-		throw error
-	}
-}
-*/
 
 function get_har_local_path(full_path, har_file){
 	return `./${full_path}${har_file}`.trim();
@@ -273,9 +175,11 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		let webpage: string = use_page_integrity ? `${data.webpageWithPIM}` : `${data.webpageWithoutPIM}`;
 		let agentLog: string = shell.exec(`${script} ${webpage}`, { silent: false }).stdout;
 
-		new Promise(() => {
-			path = getLastword(agentLog);
-		});
+		// new Promise(() => {
+		//	path = getLastword(agentLog);
+		// });
+
+		path = getLastword(agentLog);
 
 		let folderWPathWebsite = getfolderWPathWebsite(agentLog, data)
 		let har_file: string = get_har_file(agentLog, data, path, folderWPathWebsite);
@@ -286,9 +190,10 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		// let pageXray = shell.exec(`pagexray --pretty ${__dirname}/../data/piqaautomationstorage/${harPath}`.trim(), { silent: true }).stdout;
 		let pageXray = shell.exec(`pagexray --pretty ./${har_path}`.trim(), { silent: false }).stdout;
 
-		new Promise(() => {
-			parse = JSON.parse(pageXray)
-		})
+		// new Promise(() => {
+		//	parse = JSON.parse(pageXray)
+		// })
+		parse = JSON.parse(pageXray)
 
 		let client_path = get_client_path(path)
 
@@ -306,7 +211,6 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 	} catch (error) {
 		throw error;
 	}
-
 }
 
 function getfolderWPathWebsite(outPut: string, data: Data): string {
@@ -324,6 +228,8 @@ function get_har_file(outPut: string, data: Data, lastWord: string, folderWPathW
 	try {
 		let path: string = getLastword(outPut);
 		let folder: string = getFolder(path);
+
+		// get the domain name  without http or https (e.g. in the format 'www.mrporter.com')
 		let website: string = remove_http_prefix(data.webpageWithoutPIM);
 
 		// let sub_folder: string = shell.exec(`cd ${__dirname}/../data/piqaautomationstorage/${lastword}${folderWPathWebsite} && ls -1d */`, { silent: true }).stdout;
@@ -395,7 +301,6 @@ async function getLink(log: string, data: object): Promise<string> {
 	}
 }
 
-// data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean, port: number, session: string }
 async function createAProxyConfigFileWithPIM(data: Data) {
 	try {
 		let config = {
@@ -448,7 +353,6 @@ async function createAProxyConfigFileWithPIM(data: Data) {
 	}
 }
 
-// data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean, port: number, session: string }
 async function createAProxyConfigFileWithoutPIM(data: Data) {
 	try {
 		let config = {
@@ -495,14 +399,12 @@ async function createAProxyConfigFileWithoutPIM(data: Data) {
 
 		await _create.craeteDir('./config');
 
-		fs.writeFileSync(`./config/temp-proxy_${data.session}.json`, JSON.stringify(config));
+		fs.writeFileSync(`./config/${data.configFileProxy}`, JSON.stringify(config));
 	} catch (error) {
 		throw error;
 	}
 }
 
-
-// data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean, session: string }
 async function createConfigFile(data: Data) {
 	try {
 		let config = {
@@ -539,7 +441,7 @@ async function createConfigFile(data: Data) {
 
 		await _create.craeteDir('./config');
 
-		fs.writeFileSync(`./config/temp-config_${data.session}.json`, JSON.stringify(config));
+		fs.writeFileSync(`./config/${data.configFile}`, JSON.stringify(config));
 	} catch (error) {
 		throw error;
 	}
