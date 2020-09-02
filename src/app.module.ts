@@ -8,7 +8,8 @@ import { join } from 'path';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname,'..', 'data')
+      // rootPath: join(__dirname,'..', 'data')
+      rootPath: join(__dirname,'..', 'sitespeed-result')
     }),
   ],
   controllers: [AppController],
