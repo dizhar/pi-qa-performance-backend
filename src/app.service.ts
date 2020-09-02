@@ -77,10 +77,13 @@ export class AppService {
 
 				switch (data.goal) {
 					case "test production":
-						results.push(testProduction(data))
+						//results.push(testProduction(data))
+						results.push(run_tests(data, "prod"));
 						break;
 					case "test qa":
-						results.push(testQA(data));
+						//results.push(testQA(data));
+						results.push(run_tests(data, "qa"));
+						
 						break;
 					default: null;
 						break;
@@ -93,6 +96,8 @@ export class AppService {
 		}
 	}
 }
+
+/*
 // data: { webpageWithoutPIM: string, webpageWithPIM: string, script_tag: string, goal: string, iterations: number, browser: string, spa: boolean, session: string }
 async function testQA(data: Data) {
 	try {
@@ -135,6 +140,56 @@ async function testProduction(data: Data): Promise<object> {
 		outPut['noAgent'].sesssion = data;
 
 		return Promise.resolve(outPut);
+	} catch (error) {
+		throw error;
+	}
+}
+*/
+async function run_tests(data: Data, env: string): Promise<object> {
+			
+	try {
+		let output = new Object();
+		let use_proxy: boolean;
+
+		switch (env) {
+			case "prod":
+				await createConfigFile(data);
+				use_proxy = false;
+	
+				output['agent'] = await execute_sitespeed(data, use_proxy, true);
+				output['agent'].session = data;
+	
+				output['noAgent'] = await execute_sitespeed(data, use_proxy, false);
+				output['noAgent'].sesssion = data;
+
+				break;
+
+			case "qa":
+
+				Object.assign(data, { port: await getAvilablePort() });
+
+				await createAProxyConfigFileWithPIM(data);
+		
+				use_proxy = true;
+			
+				// ????? use_page_integrity
+				output['agent'] = await execute_sitespeed(data, use_proxy, true);
+				output['agent'].session = data;
+		
+				await createAProxyConfigFileWithoutPIM(data)
+				output['noAgent'] = await execute_sitespeed(data, use_proxy, false);
+				output['noAgent'].session = data;
+				
+				break;
+			default: null;
+				break;
+		}
+		
+		// delete config files
+		fs.unlinkSync(`./config/${data.configFile}`)
+		fs.unlinkSync(`./config/${data.configFileProxy}`)
+
+		return Promise.resolve(output);
 	} catch (error) {
 		throw error;
 	}
