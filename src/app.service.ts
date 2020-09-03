@@ -61,18 +61,19 @@ export class AppService {
 			let results = new Array();
 			let session_unique_id: string = _RegExr.getUniquId();
 
-			await _create.setSessionConfigFile(session_unique_id);
+			// No need for this file anymore
+			//await _create.setSessionConfigFile(session_unique_id);
+
+			console.log ("")
+			console.log ("================================================")
+			console.log ("STARTING A NEW SESSION")
+			console.log ("================================================")
 
 			list.forEach(source_data => {
 				// let uniqid: string = _RegExr.getUniquId();
 				// new Promise(() => {
 				//   _create.setSessionConfigFile(uniqid);
 				// });
-
-				// console.log ("================================================")
-				// console.log (`webpage with Page Integrity agent is '${source_data.webpageWithPIM}'`)
-				// console.log (`webpage without Page Integrity agent is '${source_data.webpageWithoutPIM}'`)
-				// console.log ("================================================")
 
 				let data: Data = {} as any;
 				let unique_id: string = _RegExr.getUniquId();
@@ -88,9 +89,12 @@ export class AppService {
 
 				Object.assign(data, { website: remove_http_prefix(data.webpageWithoutPIM) });
 
+				console.log ("")
 				console.log ("================================================")
-				console.log (`webpage with Page Integrity agent is '${data.webpageWithPIM}'`)
-				console.log (`webpage without Page Integrity agent is '${data.webpageWithoutPIM}'`)
+				console.log (`Data Id                  : '${data.id}'`)
+				console.log (`Goal                     : '${data.goal}'`)
+				console.log (`Webpage without PI agent : '${data.webpageWithoutPIM}'`)
+				console.log (`webpage with PI agent    : '${data.webpageWithPIM}'`)				
 				console.log ("================================================")
 
 				switch (data.goal) {
