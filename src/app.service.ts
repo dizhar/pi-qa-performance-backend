@@ -66,7 +66,7 @@ export class AppService {
 
 			console.log ("")
 			console.log ("================================================")
-			console.log ("STARTING A NEW SESSION")
+			console.log (`STARTING A SESSION (${session_unique_id})`)
 			console.log ("================================================")
 
 			list.forEach(source_data => {
@@ -94,7 +94,7 @@ export class AppService {
 				console.log (`Data Id                  : '${data.id}'`)
 				console.log (`Goal                     : '${data.goal}'`)
 				console.log (`Webpage without PI agent : '${data.webpageWithoutPIM}'`)
-				console.log (`webpage with PI agent    : '${data.webpageWithPIM}'`)				
+				console.log (`Webpage with PI agent    : '${data.webpageWithPIM}'`)				
 				console.log ("================================================")
 
 				switch (data.goal) {
@@ -195,8 +195,6 @@ async function run_tests(data: Data, env: string): Promise<object> {
 	}
 }
 
-
-
 async function getAvilablePort(): Promise<number> {
 	try {
 
@@ -214,10 +212,6 @@ async function getAvilablePort(): Promise<number> {
 	}
 }
 
-function get_har_local_path(data, har_file){
-	return `./${data.sitespeed_result_path}/${har_file}`.trim();
-}
-
 // getPageXrayWithoutPIM
 async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integrity: boolean): Promise<object> {
 	try {
@@ -226,10 +220,6 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		let webpage: string = use_page_integrity ? `${data.webpageWithPIM}` : `${data.webpageWithoutPIM}`;
 		let script: string = `./sitespeed.sh config/${config_file} ${webpage} ${data.id}`
 		
-		//if ( webpage == ){
-		//	throw "webpage "
-		//}
-
 		console.log("================================================")
 		console.log (`use_page_integrity = ${use_page_integrity}`)
 		console.log (`config_file        = ${config_file}`)
@@ -237,19 +227,16 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		console.log (`script             = ${script}`)
 		console.log("================================================")
 
-		let agentLog: string = shell.exec(`${script}`, { silent: false }).stdout;
+		let sitespeed_stdout: string = shell.exec(`${script}`, { silent: false }).stdout;
 
 		// new Promise(() => {
-		//	path = getLastword(agentLog);
+		//	path = get_path_to_sitespeed_result(agentLog);
 		// });
 		
-		Object.assign(data, { sitespeed_result_path: getLastword(agentLog) });
+		Object.assign(data, { sitespeed_result_path: get_path_to_sitespeed_result(sitespeed_stdout) });
 
-		let folderWPathWebsite = getfolderWPathWebsite(data)
 		let har_file: string = get_har_file(data);
-
-		// let harPath: string = `${path}${har_file}`.trim();
-		let har_path: string = get_har_local_path(data, har_file)
+		let har_path: string = `./${data.sitespeed_result_path}/${har_file}`.trim();
 
 		let json = shell.exec(`pagexray --pretty ./${har_path}`.trim(), { silent: false }).stdout;
 
@@ -257,10 +244,9 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		//	parse = JSON.parse(pageXray)
 		// })
 		let pageXray_obj: any = JSON.parse(json)
+		
+		let client_path = data.sitespeed_result_path.replace('sitespeed-result/', '')
 
-		let client_path = get_client_path(data.sitespeed_result_path)
-
-		// let link: string = `${path}/index.html`.trim();
 		let client_link: string = `${client_path}/index.html`.trim();
 		let client_har_path: string = `${client_path}/${har_file}`.trim();
 
@@ -276,45 +262,17 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 	}
 }
 
-function getfolderWPathWebsite(data: Data): string {
-	try {
-		// let path: string = getLastword(outPut);
-		let folder: string = getFolder(data.sitespeed_result_path);
-		//let website: string = remove_http_prefix(data.webpageWithoutPIM);
-		return `${folder}/pages/${data.website}/`;
-	} catch (error) {
-		throw error;
-	}
-}
-
-//function get_har_file(data: Data,folderWPathWebsite: string): string {
 function get_har_file(data: Data): string {
 	try {
-		// let path: string = getLastword(outPut);
-		//let path: string = data.sitespeed_result_path;
-		//let folder: string = getFolder(path);
-
-		//// let website: string = remove_http_prefix(data.webpageWithoutPIM);
-
-		//// let sub_folder: string = shell.exec(`cd ${__dirname}/../data/piqaautomationstorage/${lastword}${folderWPathWebsite} && ls -1d */`, { silent: true }).stdout;
-		//let sub_folder: string = shell.exec(`cd ${path}${folderWPathWebsite} && ls -1d */`, { silent: false }).stdout;
-
-		//if (sub_folder.trim() === 'data/') {
-		//	return `${folder}/pages/${data.website}/data/browsertime.har`;
-		//} else {
-		//	return `${folder}/pages/${data.website}/${sub_folder.replace(/(\r\n|\n|\r)/gm, "")}/data/browsertime.har`;
-		//}
-
+	
 		let script: string = `cd ${data.sitespeed_result_path} && find . -name 'browsertime.har'`
 		let result: string = shell.exec(`${script}`, { silent: false }).stdout;
 
 		// remove './'
 		result = result.substring(2)
 
-		console.log("--- get_har_file --------------------------------------")
-		console.log(`result: ${result}`)
-		console.log("--- get_har_file --------------------------------------")
-
+		console.log(`get_har_file result: ${result}`)
+		
 		return result;
 
 	} catch (error) {
@@ -322,9 +280,9 @@ function get_har_file(data: Data): string {
 	}
 }
 
-function getLastword(log: string): string {
+function get_path_to_sitespeed_result(stdout: string): string {
 	try {
-		let lastline = log.split('\n')[log.split('\n').length - 2];
+		let lastline = stdout.split('\n')[stdout.split('\n').length - 2];
 		let last_item_in_line = lastline.split(" ")[lastline.split(" ").length - 1];
 
 		// remove '/' from the beginning of the string
@@ -343,38 +301,10 @@ function getLastword(log: string): string {
 	}
 }
 
-function get_client_path(path) {
-	return path.replace('sitespeed-result/', '')
-}
-
-function getFolder(path: string): string {
-	try {
-		let list = path.split('/');
-		let cutofPoint = false;
-		let sentence: string = '';
-		list.forEach(item => {
-			if (cutofPoint) sentence = sentence + "/" + item;
-			if (item === "sitespeed.io") cutofPoint = true;
-		});
-		return sentence;
-	} catch (error) {
-		throw error;
-	}
-}
-
 function remove_http_prefix(url: string): string {
 	// get the domain name  without http or https (e.g. in the format 'www.mrporter.com')
 	try {
 		return url.replace(/^(?:https?:\/\/)?/i, "").split('/')[0];
-	} catch (error) {
-		throw error;
-	}
-}
-
-async function getLink(data: Data): Promise<string> {
-	try {
-		let client_path: string = get_client_path(data.sitespeed_result_path)
-		return `${client_path}/index.html`;
 	} catch (error) {
 		throw error;
 	}
