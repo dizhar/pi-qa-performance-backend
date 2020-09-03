@@ -114,8 +114,6 @@ export class AppService {
 	}
 }
 
-
-
 async function delete_config_file(file_name: string): Promise<void> {
 	try {
 		let file_path: string = `./config/${file_name}`;
@@ -220,18 +218,22 @@ function get_har_local_path(full_path, har_file){
 async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integrity: boolean): Promise<object> {
 	try {
 
-		let script: string = use_proxy ? `./sitespeed.sh config/${data.configFileProxy}`:  `./sitespeed.sh config/${data.configFile}`;
+		let config_file: string = use_proxy ? `${data.configFileProxy}`: `${data.configFile}`;
 		let webpage: string = use_page_integrity ? `${data.webpageWithPIM}` : `${data.webpageWithoutPIM}`;
-
+		let script: string = `./sitespeed.sh config/${config_file} ${webpage} ${data.id}`
+		
 		//if ( webpage == ){
 		//	throw "webpage "
 		//}
 
 		console.log("================================================")
-		console.log (`webpage url when use_page_integrity=${use_page_integrity} is '${webpage}'`)
+		console.log (`use_page_integrity = ${use_page_integrity}`)
+		console.log (`config_file        = ${config_file}`)
+		console.log (`webpage            = ${webpage}`)
+		console.log (`script             = ${script}`)
 		console.log("================================================")
 
-		let agentLog: string = shell.exec(`${script} ${webpage}`, { silent: false }).stdout;
+		let agentLog: string = shell.exec(`${script}`, { silent: false }).stdout;
 
 		// new Promise(() => {
 		//	path = getLastword(agentLog);

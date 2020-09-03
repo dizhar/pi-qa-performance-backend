@@ -1,8 +1,8 @@
 
 
-module.exports = async function(context, commands) {
+module.exports = async function (context, commands) {
 
- let proxy =  context.proxy;
- proxy.close();
+    let proxy = context.proxy;
+    proxy.close();
 
 }
