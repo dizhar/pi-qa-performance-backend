@@ -298,11 +298,23 @@ function get_har_file(data: Data,folderWPathWebsite: string): string {
 		// let sub_folder: string = shell.exec(`cd ${__dirname}/../data/piqaautomationstorage/${lastword}${folderWPathWebsite} && ls -1d */`, { silent: true }).stdout;
 		let sub_folder: string = shell.exec(`cd ${path}${folderWPathWebsite} && ls -1d */`, { silent: false }).stdout;
 
-		if (sub_folder.trim() === 'data/') {
-			return `${folder}/pages/${data.website}/data/browsertime.har`;
-		} else {
-			return `${folder}/pages/${data.website}/${sub_folder.replace(/(\r\n|\n|\r)/gm, "")}/data/browsertime.har`;
-		}
+		//if (sub_folder.trim() === 'data/') {
+		//	return `${folder}/pages/${data.website}/data/browsertime.har`;
+		//} else {
+		//	return `${folder}/pages/${data.website}/${sub_folder.replace(/(\r\n|\n|\r)/gm, "")}/data/browsertime.har`;
+		//}
+
+		let script: string = `cd ${path} && find . -name 'browsertime.har'`
+		let result: string = shell.exec(`${script}`, { silent: false }).stdout;
+
+		console.log("--- get_har_file --------------------------------------")
+		console.log(`result: ${result}`)
+		console.log(`folderWPathWebsite: ${folderWPathWebsite}`)
+		console.log(`folder: ${folder}`)
+		console.log("--- get_har_file --------------------------------------")
+
+		return result;
+
 	} catch (error) {
 		throw error;
 	}
