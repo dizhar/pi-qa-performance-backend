@@ -457,5 +457,3 @@ async function create_config_file(data: Data) {
 		throw error;
 	}
 }
-
-
