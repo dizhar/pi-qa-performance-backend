@@ -214,8 +214,8 @@ async function getAvilablePort(): Promise<number> {
 	}
 }
 
-function get_har_local_path(full_path, har_file){
-	return `./${full_path}${har_file}`.trim();
+function get_har_local_path(data, har_file){
+	return `./${data.sitespeed_result_path}/${har_file}`.trim();
 }
 
 // getPageXrayWithoutPIM
@@ -246,10 +246,10 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		Object.assign(data, { sitespeed_result_path: getLastword(agentLog) });
 
 		let folderWPathWebsite = getfolderWPathWebsite(data)
-		let har_file: string = get_har_file(data, folderWPathWebsite);
+		let har_file: string = get_har_file(data);
 
 		// let harPath: string = `${path}${har_file}`.trim();
-		let har_path: string = get_har_local_path(data.sitespeed_result_path, har_file)
+		let har_path: string = get_har_local_path(data, har_file)
 
 		let json = shell.exec(`pagexray --pretty ./${har_path}`.trim(), { silent: false }).stdout;
 
@@ -262,7 +262,7 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 
 		// let link: string = `${path}/index.html`.trim();
 		let client_link: string = `${client_path}/index.html`.trim();
-		let client_har_path: string = `${client_path}${har_file}`.trim();
+		let client_har_path: string = `${client_path}/${har_file}`.trim();
 
 		let result = {
 			link: client_link,
@@ -287,16 +287,17 @@ function getfolderWPathWebsite(data: Data): string {
 	}
 }
 
-function get_har_file(data: Data,folderWPathWebsite: string): string {
+//function get_har_file(data: Data,folderWPathWebsite: string): string {
+function get_har_file(data: Data): string {
 	try {
 		// let path: string = getLastword(outPut);
-		let path: string = data.sitespeed_result_path;
-		let folder: string = getFolder(path);
+		//let path: string = data.sitespeed_result_path;
+		//let folder: string = getFolder(path);
 
-		// let website: string = remove_http_prefix(data.webpageWithoutPIM);
+		//// let website: string = remove_http_prefix(data.webpageWithoutPIM);
 
-		// let sub_folder: string = shell.exec(`cd ${__dirname}/../data/piqaautomationstorage/${lastword}${folderWPathWebsite} && ls -1d */`, { silent: true }).stdout;
-		let sub_folder: string = shell.exec(`cd ${path}${folderWPathWebsite} && ls -1d */`, { silent: false }).stdout;
+		//// let sub_folder: string = shell.exec(`cd ${__dirname}/../data/piqaautomationstorage/${lastword}${folderWPathWebsite} && ls -1d */`, { silent: true }).stdout;
+		//let sub_folder: string = shell.exec(`cd ${path}${folderWPathWebsite} && ls -1d */`, { silent: false }).stdout;
 
 		//if (sub_folder.trim() === 'data/') {
 		//	return `${folder}/pages/${data.website}/data/browsertime.har`;
@@ -304,13 +305,14 @@ function get_har_file(data: Data,folderWPathWebsite: string): string {
 		//	return `${folder}/pages/${data.website}/${sub_folder.replace(/(\r\n|\n|\r)/gm, "")}/data/browsertime.har`;
 		//}
 
-		let script: string = `cd ${path} && find . -name 'browsertime.har'`
+		let script: string = `cd ${data.sitespeed_result_path} && find . -name 'browsertime.har'`
 		let result: string = shell.exec(`${script}`, { silent: false }).stdout;
+
+		// remove './'
+		result = result.substring(2)
 
 		console.log("--- get_har_file --------------------------------------")
 		console.log(`result: ${result}`)
-		console.log(`folderWPathWebsite: ${folderWPathWebsite}`)
-		console.log(`folder: ${folder}`)
 		console.log("--- get_har_file --------------------------------------")
 
 		return result;
