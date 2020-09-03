@@ -59,6 +59,7 @@ export class AppService {
 		try {
 			let results = new Array();
 			let unique_id: string = _RegExr.getUniquId();
+
 			await _create.setSessionConfigFile(unique_id);
 
 			list.forEach(source_data => {
@@ -67,10 +68,10 @@ export class AppService {
 				//   _create.setSessionConfigFile(uniqid);
 				// });
 
-				console.log("================================================")
+				console.log ("================================================")
 				console.log (`webpage with Page Integrity agent is '${source_data.webpageWithPIM}'`)
 				console.log (`webpage without Page Integrity agent is '${source_data.webpageWithoutPIM}'`)
-				console.log("================================================")
+				console.log ("================================================")
 
 				let data: Data = {} as any;
 				Object.assign(data, source_data)
@@ -82,10 +83,10 @@ export class AppService {
 
 				Object.assign(data, { website: remove_http_prefix(data.webpageWithoutPIM) });
 
-				console.log("================================================")
+				console.log ("================================================")
 				console.log (`webpage with Page Integrity agent is '${data.webpageWithPIM}'`)
 				console.log (`webpage without Page Integrity agent is '${data.webpageWithoutPIM}'`)
-				console.log("================================================")
+				console.log ("================================================")
 
 				switch (data.goal) {
 					case "test production":
@@ -108,6 +109,16 @@ export class AppService {
 	}
 }
 
+
+
+async function delete_config_file(file_name: string): Promise<void> {
+	try {
+		fs.unlinkSync(`./config/${file_name}`)
+	} catch (error) { 
+		console.log("Error in delete_config_file")
+	}
+}
+
 async function run_tests(data: Data, env: string): Promise<object> {
 			
 	try {
@@ -125,6 +136,8 @@ async function run_tests(data: Data, env: string): Promise<object> {
 				output['noAgent'] = await execute_sitespeed(data, use_proxy, false);
 				output['noAgent'].sesssion = data;
 
+				await delete_config_file(data.configFile);
+
 				break;
 
 			case "qa":
@@ -137,6 +150,8 @@ async function run_tests(data: Data, env: string): Promise<object> {
 				await create_proxy_config_file_with_pim(data);
 				output['agent'] = await execute_sitespeed(data, use_proxy, false);
 				output['agent'].session = data;
+
+				await delete_config_file(data.configFileProxy);
 		
 				await create_proxy_config_file_without_pim(data)
 				output['noAgent'] = await execute_sitespeed(data, use_proxy, false);
@@ -152,15 +167,15 @@ async function run_tests(data: Data, env: string): Promise<object> {
 		// fs.unlinkSync(`./config/${data.configFile}`)
 		// fs.unlinkSync(`./config/${data.configFileProxy}`)
 
-		fs.unlink(`./config/${data.configFile}`, (err) => {
-			if (err) throw err;
-			console.log(`./config/${data.configFile} was deleted.`);
-		});
+		// fs.unlink(`./config/${data.configFile}`, (err) => {
+		// 	if (err) throw err;
+		// 	console.log(`./config/${data.configFile} was deleted.`);
+		// });
 
-		fs.unlink(`./config/${data.configFileProxy}`, (err) => {
-			if (err) throw err;
-			console.log(`./config/${data.configFileProxy} was deleted.`);
-		});
+		// fs.unlink(`./config/${data.configFileProxy}`, (err) => {
+		// 	if (err) throw err;
+		// 	console.log(`./config/${data.configFileProxy} was deleted.`);
+		// });
 
 
 		return Promise.resolve(output);
@@ -168,6 +183,8 @@ async function run_tests(data: Data, env: string): Promise<object> {
 		throw error;
 	}
 }
+
+
 
 async function getAvilablePort(): Promise<number> {
 	try {
