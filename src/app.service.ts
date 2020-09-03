@@ -19,6 +19,7 @@ const _RegExr = new RegExr();
 const _create = new Create();
 
 interface Data{
+	id: string;
 	webpageWithoutPIM: string;
 	webpageWithPIM: string; 
 	script_tag: string;
@@ -58,9 +59,9 @@ export class AppService {
 			spa: boolean }[]): Promise<Object[]> {
 		try {
 			let results = new Array();
-			let unique_id: string = _RegExr.getUniquId();
+			let session_unique_id: string = _RegExr.getUniquId();
 
-			await _create.setSessionConfigFile(unique_id);
+			await _create.setSessionConfigFile(session_unique_id);
 
 			list.forEach(source_data => {
 				// let uniqid: string = _RegExr.getUniquId();
@@ -68,18 +69,22 @@ export class AppService {
 				//   _create.setSessionConfigFile(uniqid);
 				// });
 
-				console.log ("================================================")
-				console.log (`webpage with Page Integrity agent is '${source_data.webpageWithPIM}'`)
-				console.log (`webpage without Page Integrity agent is '${source_data.webpageWithoutPIM}'`)
-				console.log ("================================================")
+				// console.log ("================================================")
+				// console.log (`webpage with Page Integrity agent is '${source_data.webpageWithPIM}'`)
+				// console.log (`webpage without Page Integrity agent is '${source_data.webpageWithoutPIM}'`)
+				// console.log ("================================================")
 
 				let data: Data = {} as any;
+				let unique_id: string = _RegExr.getUniquId();
+
 				Object.assign(data, source_data)
 
-				Object.assign(data, { session: unique_id });
+				Object.assign(data, { id: unique_id });
+
+				Object.assign(data, { session: session_unique_id });
 				
-				Object.assign(data, { configFile: `temp-config_${data.session}.json` });
-				Object.assign(data, { configFileProxy: `temp-proxy_${data.session}.json` });
+				Object.assign(data, { configFile: `temp-config_${data.id}.json` });
+				Object.assign(data, { configFileProxy: `temp-proxy_${data.id}.json` });
 
 				Object.assign(data, { website: remove_http_prefix(data.webpageWithoutPIM) });
 
@@ -138,7 +143,7 @@ async function run_tests(data: Data, env: string): Promise<object> {
 				output['agent'].session = data;
 	
 				output['noAgent'] = await execute_sitespeed(data, use_proxy, false);
-				output['noAgent'].sesssion = data;
+				output['noAgent'].session = data;
 
 				await delete_config_file(data.configFile);
 
