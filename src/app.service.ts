@@ -113,7 +113,11 @@ export class AppService {
 
 async function delete_config_file(file_name: string): Promise<void> {
 	try {
-		fs.unlinkSync(`./config/${file_name}`)
+		let file_path: string = `./config/${file_name}`;
+		
+		console.log(`Deleting config file '${file_path}'`)
+		fs.unlinkSync(file_path);
+		console.log(`Config file '${file_path}' deleted successfully`)
 	} catch (error) { 
 		console.log("Error in delete_config_file")
 	}
@@ -150,12 +154,12 @@ async function run_tests(data: Data, env: string): Promise<object> {
 				await create_proxy_config_file_with_pim(data);
 				output['agent'] = await execute_sitespeed(data, use_proxy, false);
 				output['agent'].session = data;
-
 				await delete_config_file(data.configFileProxy);
 		
 				await create_proxy_config_file_without_pim(data)
 				output['noAgent'] = await execute_sitespeed(data, use_proxy, false);
 				output['noAgent'].session = data;
+				await delete_config_file(data.configFileProxy);
 				
 				break;
 			
@@ -397,7 +401,9 @@ async function create_proxy_config_file_with_pim(data: Data) {
 
 		await _create.craeteDir('./config');
 
-		fs.writeFileSync(`./config/temp-proxy_${data.session}.json`, JSON.stringify(config));
+		//fs.writeFileSync(`./config/temp-proxy_${data.session}.json`, JSON.stringify(config));
+		fs.writeFileSync(`./config/${data.configFileProxy}`, JSON.stringify(config));
+
 	} catch (error) {
 		throw error;
 	}
