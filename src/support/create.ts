@@ -1,27 +1,25 @@
 import * as fs from 'fs';
 
 export class Create {
-    constructor() {}
+    constructor() { }
 
-public async setSessionConfigFile(uniqueId: string) {
-    let config = {
-        "sessionId": uniqueId
-      }
+    public async setSessionConfigFile(uniqueId: string) {
+        let config = {
+            "sessionId": uniqueId
+        }
 
-    // await this.craeteDir("./sessions");
-    // fs.writeFileSync('./sessions/config-session.json', JSON.stringify(config));
+        // await this.craeteDir("./sessions");
+        // fs.writeFileSync('./sessions/config-session.json', JSON.stringify(config));
 
-    fs.writeFileSync('./config/config-session.json', JSON.stringify(config));
-}
-
-public async craeteDir(dirname: string) {
-    let dir = `${dirname}`;
-
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir);
+        fs.writeFileSync('./config/config-session.json', JSON.stringify(config));
     }
-}
 
+    public async craeteDir(dirname: string) {
+        let dir = `${dirname}`;
 
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir);
+        }
+    }
 }
 
