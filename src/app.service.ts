@@ -247,7 +247,7 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		
 		let client_path = data.sitespeed_result_path.replace('sitespeed-result/', '')
 
-		let backend_ip="http://104.208.220.28"
+		let backend_ip= shell.exec(`$(curl -s https://checkip.amazonaws.com)`);
 		let backend_port="3000"
 
 		let backend_address = `${backend_ip}:${backend_port}`
