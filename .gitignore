@@ -45,3 +45,6 @@ sitespeed-result
 
 #sessions folder
 sessions/
+
+#config folder
+config/
