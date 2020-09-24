@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 export class AppController {
 	constructor(private readonly appService: AppService) { }
 
-	@Post()
+	@Post("/api")
 	async post(@Body() body, @Res() res: Response) {
 		await this.appService.start(body).then((data) => {
 			return res.status(HttpStatus.OK).send({ data });
