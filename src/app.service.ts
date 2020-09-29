@@ -247,10 +247,10 @@ async function execute_sitespeed(data: Data, use_proxy: boolean, use_page_integr
 		
 		let client_path = data.sitespeed_result_path.replace('sitespeed-result/', '')
 
-		let backend_ip=`http://${process.env.HOST_IP}`
-		let backend_port="3000"
-
-		let backend_address = `${backend_ip}:${backend_port}`
+		// let backend_ip=`http://${process.env.HOST_IP}`
+		// let backend_port="3000"
+		// let backend_address = `${backend_ip}:${backend_port}`
+		let backend_address = `http://${process.env.HOST_ADDRESS}/be`
 
 		let client_link: string = `${backend_address}/${client_path}/index.html`.trim();
 		let client_har_path: string = `${backend_address}/${client_path}/${har_file}`.trim();
