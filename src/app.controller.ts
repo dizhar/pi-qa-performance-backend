@@ -14,14 +14,14 @@ export class AppController {
 		})
 	}
 
-	@Post("/remove")
-	@HttpCode(200)
-	async remove(@Body() body, @Res() res: Response): Promise<void> {		
-		this.appService.removeConfigFile(body).then(() => {
-			return res.status(HttpStatus.OK);
-		})
-		//return res.status(HttpStatus.OK);
-	}
+	// @Post("/remove")
+	// @HttpCode(200)
+	// async remove(@Body() body, @Res() res: Response): Promise<void> {		
+	// 	this.appService.removeConfigFile(body).then(() => {
+	// 		return res.status(HttpStatus.OK);
+	// 	})
+	// 	//return res.status(HttpStatus.OK);
+	// }
 }
 
 
