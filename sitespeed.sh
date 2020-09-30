@@ -17,6 +17,7 @@ docker pull $IMAGE
 
 echo ""
 echo "Running sitespeed.io"
-docker run --rm --env DATA_ID=${DATA_ID} -v sitespeed-config:/root/config -v sitespeed-script:/root/script -v sitespeed-result:/sitespeed-result $IMAGE --config root/$CONFIG_PATH $SITE
+CONTAINER_NAME="pi-qa-sitespeed-${DATA_ID}"
+docker run --rm --name $CONTAINER_NAME --env DATA_ID=${DATA_ID} -v sitespeed-config:/root/config -v sitespeed-script:/root/script -v sitespeed-result:/sitespeed-result $IMAGE --config root/$CONFIG_PATH $SITE
 
     
