@@ -376,7 +376,7 @@ async function create_proxy_config_file_without_pim(data: Data) {
 				"browser": data.browser,
 				"iterations": data.iterations,
 				"spa": data.spa,
-				"preScript": "root/script/proxy/proxy_start_without_pim.ts",
+				"preScript": "root/script/proxy/proxy_start_without_pim.js",
 				"postScript": "root/script/proxy/proxy_end.js",
 				"summary": true,
 				"firefox.disableSafeBrowsing": true,

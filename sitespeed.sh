@@ -4,7 +4,7 @@ set -e
 CONFIG_PATH=${1:-"config/config.json"}
 SITE="$2"
 DATA_ID="$3"
-IMAGE_TAG=${4:-"dev"}
+IMAGE_TAG=${4:-"master"}
 
 [[ "$CONFIG_PATH" == "" ]] && echo "CONFIG_PATH (1st parameter) cannot be empty" && exit 1
 [[ "$SITE" == "" 	]] && echo "SITE (2nd parameter) cannot be empty" && exit 1
