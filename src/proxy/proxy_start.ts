@@ -15,5 +15,5 @@ module.exports = async function (context, commands) {
         console.log(`DATA_ID = ${process.env.DATA_ID}`)
         console.log("====================================")
 
-        context.proxy = await "<head>[0]"['proxyReplace'](`<head><link rel="dns-prefetch" href="${config['script_tag']}" ><script src="${config['script_tag']}"></script>`, config['port'])
+        context.proxy = await "<head>[0]"['proxyReplace'](`<head><link rel="preload" as="script" href="${config['script_tag']}"><script src="${config['script_tag']}"></script>`, config['port'])
 };
